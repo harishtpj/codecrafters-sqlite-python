@@ -97,9 +97,20 @@ class SqliteMasterCell:
 
         items = []
         for st in serial_types:
-            if st == 1:
-                items.append(*struct.unpack('>b', data[offset:offset+1]))
-                offset += 1
+            if 1 <= st <= 4:
+                items.append(int.from_bytes(data[offset:offset+st], 'big'))
+                offset += st
+            elif st == 5:
+                items.append(int.from_bytes(data[offset:offset+6], 'big'))
+                offset += 6
+            elif st == 6:
+                items.append(int.from_bytes(data[offset:offset+8], 'big'))
+                offset += 8
+            elif st == 7:
+                items.append(*struct.unpack('>d', data[offset:offset+8]))
+                offset += 8
+            elif st >= 12 and st % 2 == 0:
+                raise NotImplementedError
             elif st >= 13 and st % 2 == 1:
                 # TEXT
                 size = (st - 13) // 2

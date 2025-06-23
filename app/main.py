@@ -43,6 +43,7 @@ def main():
         t_info = tables.get(table_name)
         if t_info is None:
             print("Table not found")
+            sys.exit(1)
         goto_root_page(dbf, t_info.rootpage, hdr.page_size)
         r_page_data = dbf.read(hdr.page_size)
 
@@ -50,6 +51,27 @@ def main():
         hdr_offset = 100 if t_info.rootpage == 1 else 0
         new_btree_hdr = BTreePageHeader.from_bytes(r_page_data[hdr_offset:])
         print(new_btree_hdr.n_cells)
+    elif CMD.startswith('select '):
+        _, table_name = CMD.split()
+        t_info = tables.get(table_name)
+        if t_info is None:
+            print("Table not found")
+            sys.exit(1)
+        goto_root_page(dbf, t_info.rootpage, hdr.page_size)
+        r_page_data = dbf.read(hdr.page_size)
+
+        #---read data 
+        hdr_offset = 100 if t_info.rootpage == 1 else 0
+        new_btree_hdr = BTreePageHeader.from_bytes(r_page_data[hdr_offset:])
+        new_cell_ptrs = CellPointerArray.from_bytes(r_page_data[8:], new_btree_hdr.n_cells)
+        for ptr in new_cell_ptrs.ptrs:
+            try:
+                cell = SqliteMasterCell.from_bytes(r_page_data[ptr:])
+                print(cell)
+            except Exception as e:
+                print(f"Error parsing cell at offset {ptr}: {e}", file=sys.stderr)
+                continue
+
     else:
         print(f"Invalid command: {CMD}")
 
