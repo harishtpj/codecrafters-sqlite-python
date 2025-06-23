@@ -3,6 +3,7 @@ import struct
 import sys
 from array import array
 from dataclasses import dataclass
+from collections import namedtuple
 
 @dataclass
 class FileHeader:
@@ -63,6 +64,8 @@ def read_varint(data: bytes, offset: int) -> tuple[int, int]:
                 break
     
     return value, bytes_read
+
+TableInfo = namedtuple('TableInfo', 'type tbl_name rootpage sql')
 
 @dataclass
 class SqliteMasterCell:
